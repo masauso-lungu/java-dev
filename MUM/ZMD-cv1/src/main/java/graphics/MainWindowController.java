@@ -14,6 +14,8 @@ import javafx.stage.WindowEvent;
 import jpeg.Process;
 
 import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -60,6 +62,8 @@ public class MainWindowController implements Initializable {
     @FXML
     ComboBox<SamplingType> sampling;
 
+    // Process instance for image operations // Ex2
+    private Process process;
 
     /**
      * Inicializace okna, nastavení výchozích hodnot. Naplnění prvků v rozhraní.
@@ -81,13 +85,14 @@ public class MainWindowController implements Initializable {
         spinnerValues.setValue(8);
         transformBlock.setValueFactory(spinnerValues);
 
-
         // Nastavení formátu čísel v textových polích, aby bylo možné zadávat pouze čísla. Plus metoda, která je na konci souboru.
         quantizeQualityField.setTextFormatter(new TextFormatter<>(Helper.NUMBER_FORMATTER));
 
         // Propojení slideru s textovým polem
         quantizeQualityField.textProperty().bindBidirectional(quantizeQuality.valueProperty(), NumberFormat.getIntegerInstance());
 
+        // Load the default image // Ex2
+        process = new Process(FileBindings.defaultImage);
     }
 
     public void close() {
@@ -108,20 +113,53 @@ public class MainWindowController implements Initializable {
             throw new RuntimeException(e);
         }
     }
-
-    public void changeImage() {
+    /*
+    public void showOriginal() {
+        if (process != null) {
+            Dialogs.showImageInWindow(process.getOriginalImage(), "Original", true);
+        }
+    }
+    */
+    public void changeImage() { // Ex2
+        File f = Dialogs.openFile();
+        if (f != null) {
+            process = new Process(f.getAbsolutePath());
+            Dialogs.closeImageWindows();
+        }
     }
 
-    public void reset() {
+    public void reset() { // Ex2
+        process = new Process(FileBindings.defaultImage);
+        Dialogs.closeImageWindows();
     }
 
-    public void showRGBModified() {
+    public void showRGBModified() { // Ex2
+        if (process != null && process.getModifiedR() != null) {
+            BufferedImage img = Process.getImageFromRGB(process.getModifiedR(), process.getModifiedG(), process.getModifiedB());
+            Dialogs.showImageInWindow(img, "Modified RGB");
+        }
     }
 
-    public void convertToRGB() {
+    public void convertToRGB() { // Ex2
+        if (process != null && process.getModifiedY() != null) {
+            process.convertToRGB();
+
+            if (showSteps.isSelected()) {
+                showRGBModified();
+            }
+        }
     }
 
-    public void convertToYCbCr() {
+    public void convertToYCbCr() { // Ex2
+        if (process != null) {
+            process.convertToYCbCr();
+
+            if (showSteps.isSelected()) {
+                Dialogs.showImageInWindow(Process.getGrayscaleImageFromMatrix(process.getOriginalY()), "Y (Original)");
+                Dialogs.showImageInWindow(Process.getGrayscaleImageFromMatrix(process.getOriginalCb()), "Cb (Original)");
+                Dialogs.showImageInWindow(Process.getGrayscaleImageFromMatrix(process.getOriginalCr()), "Cr (Original)");
+            }
+        }
     }
 
     public void sample() {
@@ -152,52 +190,101 @@ public class MainWindowController implements Initializable {
 
     }
 
-    public void showBlueModified() {
+    // --- Display individual color channels --- // Ex2
 
+    public void showBlueModified() { // Ex2
+        if (process != null && process.getModifiedB() != null) {
+            Dialogs.showImageInWindow(
+                    Process.showOneColorImageFromRGB(process.getModifiedB(), Color.BLUE, shadesOfGrey.isSelected()),
+                    "Blue (Modified)");
+        }
     }
 
-    public void showBlueOriginal() {
-
+    public void showBlueOriginal() { // Ex2
+        if (process != null && process.getOriginalB() != null) {
+            Dialogs.showImageInWindow(
+                    Process.showOneColorImageFromRGB(process.getOriginalB(), Color.BLUE, shadesOfGrey.isSelected()),
+                    "Blue (Original)");
+        }
     }
 
-    public void showCbModified() {
-
+    public void showCbModified() { // Ex2
+        if (process != null && process.getModifiedCb() != null) {
+            Dialogs.showImageInWindow(
+                    Process.getGrayscaleImageFromMatrix(process.getModifiedCb()),
+                    "Cb (Modified)");
+        }
     }
 
-    public void showCbOriginal() {
-
+    public void showCbOriginal() { // Ex2
+        if (process != null && process.getOriginalCb() != null) {
+            Dialogs.showImageInWindow(
+                    Process.getGrayscaleImageFromMatrix(process.getOriginalCb()),
+                    "Cb (Original)");
+        }
     }
 
-    public void showCrModified() {
-
+    public void showCrModified() { // Ex2
+        if (process != null && process.getModifiedCr() != null) {
+            Dialogs.showImageInWindow(
+                    Process.getGrayscaleImageFromMatrix(process.getModifiedCr()),
+                    "Cr (Modified)");
+        }
     }
 
-    public void showCrOriginal() {
-
+    public void showCrOriginal() { // Ex2
+        if (process != null && process.getOriginalCr() != null) {
+            Dialogs.showImageInWindow(
+                    Process.getGrayscaleImageFromMatrix(process.getOriginalCr()),
+                    "Cr (Original)");
+        }
     }
 
-    public void showGreenModified() {
-
+    public void showGreenModified() { // Ex2
+        if (process != null && process.getModifiedG() != null) {
+            Dialogs.showImageInWindow(
+                    Process.showOneColorImageFromRGB(process.getModifiedG(), Color.GREEN, shadesOfGrey.isSelected()),
+                    "Green (Modified)");
+        }
     }
 
-    public void showGreenOriginal() {
-
+    public void showGreenOriginal() { // Ex2
+        if (process != null && process.getOriginalG() != null) {
+            Dialogs.showImageInWindow(
+                    Process.showOneColorImageFromRGB(process.getOriginalG(), Color.GREEN, shadesOfGrey.isSelected()),
+                    "Green (Original)");
+        }
     }
 
-    public void showRedModified() {
-
+    public void showRedModified() { // Ex2
+        if (process != null && process.getModifiedR() != null) {
+            Dialogs.showImageInWindow(
+                    Process.showOneColorImageFromRGB(process.getModifiedR(), Color.RED, shadesOfGrey.isSelected()),
+                    "Red (Modified)");
+        }
     }
 
-    public void showRedOriginal() {
-
+    public void showRedOriginal() { // Ex2
+        if (process != null && process.getOriginalR() != null) {
+            Dialogs.showImageInWindow(
+                    Process.showOneColorImageFromRGB(process.getOriginalR(), Color.RED, shadesOfGrey.isSelected()),
+                    "Red (Original)");
+        }
     }
 
-    public void showYModified() {
-
+    public void showYModified() { // Ex2
+        if (process != null && process.getModifiedY() != null) {
+            Dialogs.showImageInWindow(
+                    Process.getGrayscaleImageFromMatrix(process.getModifiedY()),
+                    "Y (Modified)");
+        }
     }
 
-    public void showYOriginal() {
-
+    public void showYOriginal() { // Ex2
+        if (process != null && process.getOriginalY() != null) {
+            Dialogs.showImageInWindow(
+                    Process.getGrayscaleImageFromMatrix(process.getOriginalY()),
+                    "Y (Original)");
+        }
     }
 }
-
