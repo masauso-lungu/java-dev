@@ -162,12 +162,26 @@ public class MainWindowController implements Initializable {
         }
     }
 
-    public void sample() {
+    public void sample() { // Ex3
+        if (process != null && process.getModifiedCb() != null) {
+            process.downSample(sampling.getValue());
 
+            if (showSteps.isSelected()) {
+                Dialogs.showImageInWindow(Process.getGrayscaleImageFromMatrix(process.getModifiedCb()), "Cb (Downsampled)");
+                Dialogs.showImageInWindow(Process.getGrayscaleImageFromMatrix(process.getModifiedCr()), "Cr (Downsampled)");
+            }
+        }
     }
 
-    public void inverseSample() {
+    public void inverseSample() { // Ex3
+        if (process != null && process.getModifiedCb() != null) {
+            process.overSample(sampling.getValue());
 
+            if (showSteps.isSelected()) {
+                Dialogs.showImageInWindow(Process.getGrayscaleImageFromMatrix(process.getModifiedCb()), "Cb (Upsampled)");
+                Dialogs.showImageInWindow(Process.getGrayscaleImageFromMatrix(process.getModifiedCr()), "Cr (Upsampled)");
+            }
+        }
     }
 
     public void transform() {

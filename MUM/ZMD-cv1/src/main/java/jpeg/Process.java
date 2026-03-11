@@ -3,6 +3,7 @@ package jpeg;
 import Jama.Matrix;
 import core.FileBindings;
 import core.Helper;
+import enums.SamplingType;
 import graphics.Dialogs;
 
 import java.awt.*;
@@ -108,6 +109,22 @@ public class Process {
         modifiedR = result[0];
         modifiedG = result[1];
         modifiedB = result[2];
+    }
+
+    /**
+     * Downsamples modified Cb and Cr channels using the given sampling type.
+     */
+    public void downSample(SamplingType type) { // Ex3
+        modifiedCb = Sampling.sampleDown(modifiedCb, type);
+        modifiedCr = Sampling.sampleDown(modifiedCr, type);
+    }
+
+    /**
+     * Upsamples modified Cb and Cr channels back to original Y dimensions.
+     */
+    public void overSample(SamplingType type) { // Ex3
+        modifiedCb = Sampling.sampleUp(modifiedCb, type);
+        modifiedCr = Sampling.sampleUp(modifiedCr, type);
     }
 
     /**
