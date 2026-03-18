@@ -1,5 +1,6 @@
 package graphics;
 
+import Jama.Matrix;
 import core.FileBindings;
 import core.Helper;
 import enums.SamplingType;
@@ -12,6 +13,7 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import jpeg.Process;
+import jpeg.Quality;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -43,7 +45,21 @@ public class MainWindowController implements Initializable {
     @FXML
     TextField qualityMSE;
     @FXML
+    TextField qualityMAE; // Ex4
+    @FXML
     TextField qualityPSNR;
+    @FXML
+    TextField qualitySAE; // Ex4
+
+    @FXML
+    ComboBox<String> qualityChannel; // Ex4
+
+    @FXML
+    TextField qualitySSIM; // Ex4
+    @FXML
+    TextField qualityMSSIM; // Ex4
+    @FXML
+    ComboBox<String> ssimChannel; // Ex4
 
     @FXML
     Slider quantizeQuality;
@@ -93,6 +109,14 @@ public class MainWindowController implements Initializable {
 
         // Load the default image // Ex2
         process = new Process(FileBindings.defaultImage);
+
+        // Populate quality channel selector // Ex4
+        qualityChannel.getItems().addAll("RGB", "Red", "Green", "Blue", "Y", "Cb", "Cr");
+        qualityChannel.getSelectionModel().select("RGB");
+
+        // Populate SSIM channel selector (Y, Cb, Cr only) // Ex4
+        ssimChannel.getItems().addAll("Y", "Cb", "Cr");
+        ssimChannel.getSelectionModel().select("Y");
     }
 
     public void close() {
@@ -200,8 +224,131 @@ public class MainWindowController implements Initializable {
 
     }
 
-    public void countQuality() {
+    public void countQuality() { // Ex4
+        if (process == null) return;
 
+        String channel = qualityChannel.getValue();
+        double[][] orig = null;
+        double[][] mod = null;
+
+        // Get the data for the selected channel
+        switch (channel) {
+            case "Red":
+                if (process.getOriginalR() != null && process.getModifiedR() != null) {
+                    orig = Quality.convertIntToDouble(process.getOriginalR());
+                    mod = Quality.convertIntToDouble(process.getModifiedR());
+                }
+                break;
+            case "Green":
+                if (process.getOriginalG() != null && process.getModifiedG() != null) {
+                    orig = Quality.convertIntToDouble(process.getOriginalG());
+                    mod = Quality.convertIntToDouble(process.getModifiedG());
+                }
+                break;
+            case "Blue":
+                if (process.getOriginalB() != null && process.getModifiedB() != null) {
+                    orig = Quality.convertIntToDouble(process.getOriginalB());
+                    mod = Quality.convertIntToDouble(process.getModifiedB());
+                }
+                break;
+            case "Y":
+                if (process.getOriginalY() != null && process.getModifiedY() != null) {
+                    orig = process.getOriginalY().getArray();
+                    mod = process.getModifiedY().getArray();
+                }
+                break;
+            case "Cb":
+                if (process.getOriginalCb() != null && process.getModifiedCb() != null) {
+                    orig = process.getOriginalCb().getArray();
+                    mod = process.getModifiedCb().getArray();
+                }
+                break;
+            case "Cr":
+                if (process.getOriginalCr() != null && process.getModifiedCr() != null) {
+                    orig = process.getOriginalCr().getArray();
+                    mod = process.getModifiedCr().getArray();
+                }
+                break;
+            case "RGB":
+            default:
+                if (process.getOriginalR() != null && process.getModifiedR() != null) {
+                    // Average MSE of all 3 channels
+                    double[][] origR = Quality.convertIntToDouble(process.getOriginalR());
+                    double[][] origG = Quality.convertIntToDouble(process.getOriginalG());
+                    double[][] origB = Quality.convertIntToDouble(process.getOriginalB());
+                    double[][] modR = Quality.convertIntToDouble(process.getModifiedR());
+                    double[][] modG = Quality.convertIntToDouble(process.getModifiedG());
+                    double[][] modB = Quality.convertIntToDouble(process.getModifiedB());
+
+                    double mseR = Quality.countMSE(origR, modR);
+                    double mseG = Quality.countMSE(origG, modG);
+                    double mseB = Quality.countMSE(origB, modB);
+                    double mseAvg = (mseR + mseG + mseB) / 3.0;
+
+                    double maeR = Quality.countMAE(origR, modR);
+                    double maeG = Quality.countMAE(origG, modG);
+                    double maeB = Quality.countMAE(origB, modB);
+                    double maeAvg = (maeR + maeG + maeB) / 3.0;
+
+                    double saeR = Quality.countSAE(origR, modR);
+                    double saeG = Quality.countSAE(origG, modG);
+                    double saeB = Quality.countSAE(origB, modB);
+                    double saeAvg = (saeR + saeG + saeB) / 3.0;
+
+                    qualityMSE.setText(String.format("%.4f", mseAvg));
+                    qualityMAE.setText(String.format("%.4f", maeAvg));
+                    qualityPSNR.setText(String.format("%.4f", Quality.countPSNR(mseAvg)));
+                    qualitySAE.setText(String.format("%.4f", saeAvg));
+                    return;
+                }
+                break;
+        }
+
+        // For single channel calculations
+        if (orig != null && mod != null) {
+            double mse = Quality.countMSE(orig, mod);
+            double mae = Quality.countMAE(orig, mod);
+            double sae = Quality.countSAE(orig, mod);
+            double psnr = Quality.countPSNR(mse);
+
+            qualityMSE.setText(String.format("%.4f", mse));
+            qualityMAE.setText(String.format("%.4f", mae));
+            qualityPSNR.setText(String.format("%.4f", psnr));
+            qualitySAE.setText(String.format("%.4f", sae));
+        }
+    }
+
+    /**
+     * Calculates SSIM and MSSIM for the selected YCbCr channel.
+     */
+    public void countSSIM() { // Ex4
+        if (process == null) return;
+
+        String channel = ssimChannel.getValue();
+        Matrix orig = null;
+        Matrix mod = null;
+
+        switch (channel) {
+            case "Y":
+                orig = process.getOriginalY();
+                mod = process.getModifiedY();
+                break;
+            case "Cb":
+                orig = process.getOriginalCb();
+                mod = process.getModifiedCb();
+                break;
+            case "Cr":
+                orig = process.getOriginalCr();
+                mod = process.getModifiedCr();
+                break;
+        }
+
+        if (orig != null && mod != null) {
+            double ssim = Quality.countSSIM(orig, mod);
+            double mssim = Quality.countMSSIM(orig, mod);
+            qualitySSIM.setText(String.format("%.6f", ssim));
+            qualityMSSIM.setText(String.format("%.6f", mssim));
+        }
     }
 
     // --- Display individual color channels --- // Ex2
