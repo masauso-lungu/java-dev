@@ -4,6 +4,7 @@ import Jama.Matrix;
 import core.FileBindings;
 import core.Helper;
 import enums.SamplingType;
+import enums.TransformType;
 import graphics.Dialogs;
 
 import java.awt.*;
@@ -125,6 +126,24 @@ public class Process {
     public void overSample(SamplingType type) { // Ex3
         modifiedCb = Sampling.sampleUp(modifiedCb, type);
         modifiedCr = Sampling.sampleUp(modifiedCr, type);
+    }
+
+    /**
+     * Applies forward transform (DCT or WHT) to all modified YCbCr channels.
+     */
+    public void transform(TransformType type, int blockSize) { // Ex5
+        modifiedY = Transform.transform(modifiedY, type, blockSize);
+        modifiedCb = Transform.transform(modifiedCb, type, blockSize);
+        modifiedCr = Transform.transform(modifiedCr, type, blockSize);
+    }
+
+    /**
+     * Applies inverse transform (DCT or WHT) to all modified YCbCr channels.
+     */
+    public void inverseTransform(TransformType type, int blockSize) { // Ex5
+        modifiedY = Transform.inverseTransform(modifiedY, type, blockSize);
+        modifiedCb = Transform.inverseTransform(modifiedCb, type, blockSize);
+        modifiedCr = Transform.inverseTransform(modifiedCr, type, blockSize);
     }
 
     /**
