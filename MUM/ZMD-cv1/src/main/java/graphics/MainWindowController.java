@@ -220,12 +220,16 @@ public class MainWindowController implements Initializable {
         }
     }
 
-    public void quantize() {
-
+    public void quantize() { // Ex6
+        if (process != null && process.getModifiedY() != null) {
+            process.quantize(transformBlock.getValue(), quantizeQuality.getValue());
+        }
     }
 
-    public void inverseQuantize() {
-
+    public void inverseQuantize() { // Ex6
+        if (process != null && process.getModifiedY() != null) {
+            process.inverseQuantize(transformBlock.getValue(), quantizeQuality.getValue());
+        }
     }
 
     public void countQuality() { // Ex4

@@ -147,6 +147,24 @@ public class Process {
     }
 
     /**
+     * Quantizes all modified YCbCr channels (Y uses luminance table, Cb/Cr use chrominance).
+     */
+    public void quantize(int blockSize, double quality) { // Ex6
+        modifiedY = Quantization.quantize(modifiedY, blockSize, quality, true);
+        modifiedCb = Quantization.quantize(modifiedCb, blockSize, quality, false);
+        modifiedCr = Quantization.quantize(modifiedCr, blockSize, quality, false);
+    }
+
+    /**
+     * Inverse quantizes all modified YCbCr channels.
+     */
+    public void inverseQuantize(int blockSize, double quality) { // Ex6
+        modifiedY = Quantization.inverseQuantize(modifiedY, blockSize, quality, true);
+        modifiedCb = Quantization.inverseQuantize(modifiedCb, blockSize, quality, false);
+        modifiedCr = Quantization.inverseQuantize(modifiedCr, blockSize, quality, false);
+    }
+
+    /**
      * Creates an image showing just one color channel.
      * If grayscale is true, shows as gray. Otherwise shows in the given color.
      */
